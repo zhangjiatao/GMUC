@@ -1,4 +1,4 @@
-# Few-shot Uncertain Relation Learning
+# Gaussian Metric Learning for Few-Shot Uncertain Knowledge Graph Completion
 
 ## Install
 Make sure your local environment has the following installed:
