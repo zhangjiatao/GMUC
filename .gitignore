@@ -4,7 +4,6 @@
 *.tsv
 *.csv
 *.DS_Store
-*.zip
 .vscode/
 *.txt
 data/
