@@ -93,16 +93,25 @@ class EmbedMatcher_GMUC(Matcher):
             false_scores = false_scores.reshape((query_scores.shape[0])) # resize
 
         query_confidence = query[:,2]
+        zero_torch = torch.zeros(query_confidence.shape).cuda()
+        ones_torch = torch.ones(query_confidence.shape).cuda()
+        query_conf_mask = torch.where(query_confidence < 0.5, zero_torch, ones_torch)
         # ------ MSE loss -------
         mae_loss = (query_scores_var - query_confidence)**2
         mae_loss = self.mae_weight * mae_loss.sum()
         # ------ rank loss ------ 
-        rank_loss = self.rank_weight * torch.mean(F.relu(self.margin - (query_scores - false_scores))) # rank loss   
+        rank_loss = self.margin - (query_scores - false_scores)
+        if self.if_conf:
+            rank_loss = torch.mean(F.relu(rank_loss) * query_conf_mask) # rank loss 
+        else:
+            rank_loss = torch.mean(F.relu(rank_loss))
+        rank_loss = self.rank_weight * rank_loss
         # ------ lstem loss ------ 
         ae_loss = self.ae_weight * query_ae_loss # lstm aggregation loss
         # ------ over all loss ------ 
         loss = rank_loss +  mae_loss + ae_loss
         return loss
+
 
 
 class MatchNet(nn.Module):

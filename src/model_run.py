@@ -64,11 +64,7 @@ class Model_Run(object):
         self.pad_id = self.num_symbols
 
         # select model
-        self.matcher = None
-        if self.set_aggregator == 'FSRL':
-            self.matcher = EmbedMatcher_FSRL(arg, self.num_symbols, embed = self.symbol2vec)
-        elif self.set_aggregator == 'GMUC':
-            self.matcher = EmbedMatcher_GMUC(arg, self.num_symbols, embed = self.symbol2vec)
+        self.matcher = EmbedMatcher_GMUC(arg, self.num_symbols, embed = self.symbol2vec)
         if self.if_GPU:
             self.matcher.cuda()
 
@@ -276,7 +272,7 @@ class Model_Run(object):
             if self.batch_nums % self.eval_every == 0:
                 print("Epoch %d has finished, saving..." % (self.batch_nums))
                 path = './Experiments/' + self.experiment_name + '/checkpoints/' + self.set_aggregator + str(self.batch_nums) + ".ckpt"
-                # torch.save(self.matcher.state_dict(), path)
+                torch.save(self.matcher.state_dict(), path)
             # if self.batch_nums % self.eval_every == 0:
             if self.batch_nums % self.eval_every == 0 and self.batch_nums != 0:
                 mean_confidence, mean_var, mae, mse, hits10, hits5, hits1, mrr = self.eval()
@@ -394,7 +390,7 @@ class Model_Run(object):
                     scores, scores_var, _ = self.matcher.scoreOp(support, support_meta, query,  query_meta)
 
                     # # rank setting
-                    scores = scores_var 
+                    # scores = scores_var 
                     # scores = 1.0 - torch.abs(scores_var - float(triple[3]))
                     # scores = scores * scores_var
                     # scores = scores.tanh() + scores_var
@@ -402,6 +398,8 @@ class Model_Run(object):
                     #     scores_var[0] = float(triple[3])
                     # scores = scores_var
                     # scores = 1.0 - torch.abs(scores_var - float(triple[3]))
+                    if 'N3' in self.datapath:
+                        scores = self.rank_weight * scores.tanh() + scores_var
 
                     # score
                     scores.detach()

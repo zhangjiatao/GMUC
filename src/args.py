@@ -24,9 +24,12 @@ def read_args():
     parser.add_argument("--eval_every", default=5000, type=int)
     parser.add_argument("--max_batches", default=40000, type=int)
     # parser.add_argument("--prefix", default='intial', type=str)
+
     parser.add_argument("--rank_weight", default=1.0, type=float)
     parser.add_argument("--ae_weight", default=0.00001, type=float)
     parser.add_argument("--mae_weight", default=1.0, type=float)
+    parser.add_argument("--if_conf", default=1, type=int) # if consider triple confidence
+
     parser.add_argument("--if_GPU", default=1, type=int)
     parser.add_argument("--type_constrain", default=1, type=int) # if type_constrain
     parser.add_argument("--neg_nums", default = 1, type=int) # neg num for each train query
@@ -34,14 +37,6 @@ def read_args():
     parser.add_argument("--experiment_name", default = 'default', type=str)
 
     args = parser.parse_args()
-    # args.save_path = 'models/' + args.prefix
-
-    #print (args.embed_dim)
-
-    # print("------arguments/parameters-------")
-    # for k, v in vars(args).items():
-    # 	print(k + ': ' + str(v))
-    # print("---------------------------------")
 
     return args
 
