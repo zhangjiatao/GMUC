@@ -399,6 +399,7 @@ class Model_Run(object):
                     # scores = scores_var
                     # scores = 1.0 - torch.abs(scores_var - float(triple[3]))
                     if 'N3' in self.datapath:
+                        # print('[INFO] N3')
                         scores = self.rank_weight * scores.tanh() + scores_var
 
                     # score

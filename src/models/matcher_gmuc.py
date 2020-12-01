@@ -13,7 +13,9 @@ class EmbedMatcher_GMUC(Matcher):
 
         self.matchnet_mean = MatchNet(d_model, self.process_steps)
         self.matchnet_var = MatchNet(d_model, self.process_steps)
-
+        if 'N3' in self.datapath:
+            self.matchnet_mean = MatchNet(d_model, self.process_steps)
+            self.matchnet_var = MatchNet(d_model, 1)
         self.gcn_w = nn.Linear(2*self.embed_dim, self.embed_dim)
         self.gcn_w_var = nn.Linear(2*self.embed_dim, self.embed_dim)
 
@@ -95,13 +97,14 @@ class EmbedMatcher_GMUC(Matcher):
         query_confidence = query[:,2]
         zero_torch = torch.zeros(query_confidence.shape).cuda()
         ones_torch = torch.ones(query_confidence.shape).cuda()
-        query_conf_mask = torch.where(query_confidence < 0.5, zero_torch, ones_torch)
+        query_conf_mask = torch.where(query_confidence < 0.5, zero_torch, query_confidence)
         # ------ MSE loss -------
         mae_loss = (query_scores_var - query_confidence)**2
         mae_loss = self.mae_weight * mae_loss.sum()
         # ------ rank loss ------ 
         rank_loss = self.margin - (query_scores - false_scores)
         if self.if_conf:
+            # print('[INFO] if_conf')
             rank_loss = torch.mean(F.relu(rank_loss) * query_conf_mask) # rank loss 
         else:
             rank_loss = torch.mean(F.relu(rank_loss))
@@ -124,6 +127,9 @@ class MatchNet(nn.Module):
 
     def forward(self, support_mean, support_var, query_mean, query_var):
         assert support_mean.size()[1] == query_mean.size()[1]
+
+        if self.process == 1:
+            return torch.matmul(query_mean, support_mean.t()).squeeze()
 
         batch_size = query_mean.size()[0]
         h_r = Variable(torch.zeros(batch_size, 2 * self.input_dim)).cuda()
